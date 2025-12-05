@@ -41,7 +41,8 @@ export const generateImageMetadata = async (
   userContext: string,
   negativeKeywords: string,
   modelName: string = 'gemini-2.5-flash',
-  apiKey?: string
+  apiKey?: string,
+  commonKeywords?: string
 ): Promise<StockMetadata> => {
   const finalApiKey = apiKey || process.env.API_KEY;
   
@@ -114,7 +115,16 @@ export const generateImageMetadata = async (
 
     const data = JSON.parse(text) as StockMetadata;
 
-    // Post-processing: Strictly remove negative keywords
+    // Post-processing: 
+    // 1. Add Common Keywords (if any) to the beginning
+    if (commonKeywords) {
+      const commonList = commonKeywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+      // Combine common + generated, removing duplicates
+      const combined = [...commonList, ...data.keywords];
+      data.keywords = [...new Set(combined)];
+    }
+
+    // 2. Strictly remove negative keywords
     if (negativeKeywords) {
       const negatives = negativeKeywords.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
       data.keywords = data.keywords.filter(k => !negatives.includes(k.toLowerCase()));

@@ -6,11 +6,12 @@ import { SettingsModal } from './components/SettingsModal';
 import { ProcessedImage, AppSettings } from './types';
 import { generateImageMetadata } from './services/geminiService';
 import { generateCSV, downloadCSV } from './services/csvService';
-import { Play, RotateCcw, Zap, Download, Loader2 } from 'lucide-react';
+import { Play, RotateCcw, Zap, Download, Loader2, Tags } from 'lucide-react';
 
 const App: React.FC = () => {
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessingGlobal, setIsProcessingGlobal] = useState<boolean>(false);
+  const [commonKeywords, setCommonKeywords] = useState<string>('');
   
   // Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -111,7 +112,8 @@ const App: React.FC = () => {
         targetImage.manualContext,
         settings.negativeKeywords,
         settings.model,
-        settings.apiKey
+        settings.apiKey,
+        commonKeywords
       );
       
       setImages(prev => prev.map(img => 
@@ -151,7 +153,8 @@ const App: React.FC = () => {
                imageItem.manualContext,
                settings.negativeKeywords,
                settings.model,
-               settings.apiKey
+               settings.apiKey,
+               commonKeywords
              );
              
              setImages(prev => prev.map(img => 
@@ -184,7 +187,7 @@ const App: React.FC = () => {
     // Wait for remaining tasks
     await Promise.all(executing);
     setIsProcessingGlobal(false);
-  }, [images, settings.negativeKeywords, settings.model, settings.maxConcurrency, settings.apiKey]);
+  }, [images, settings.negativeKeywords, settings.model, settings.maxConcurrency, settings.apiKey, commonKeywords]);
 
   const pendingCount = images.filter(i => i.status === 'pending' || i.status === 'error').length;
   const completedCount = images.filter(i => i.status === 'completed').length;
@@ -192,7 +195,7 @@ const App: React.FC = () => {
   const progressPercentage = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
   return (
-    <div className="min-h-screen pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen pb-20 px-4 sm:px-6 lg:px-8 max-w-[95%] mx-auto">
       <Header onOpenSettings={() => setIsSettingsOpen(true)} />
       
       <SettingsModal 
@@ -202,11 +205,26 @@ const App: React.FC = () => {
         onSaveSettings={handleSaveSettings}
       />
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         
         {/* Upload Area */}
         <div className="max-w-3xl mx-auto">
            <ImageUploader onFilesSelected={handleFilesSelected} isProcessing={isProcessingGlobal} />
+           
+           {/* Common Keywords Input */}
+           <div className="mt-4 bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex items-center gap-3">
+              <Tags className="w-5 h-5 text-indigo-400 shrink-0" />
+              <input 
+                type="text"
+                value={commonKeywords}
+                onChange={(e) => setCommonKeywords(e.target.value)}
+                placeholder="Common keywords for ALL images (e.g. 'ai generated, digital art, 4k')"
+                className="w-full bg-transparent border-none focus:ring-0 text-sm text-white placeholder-slate-500"
+              />
+           </div>
+           <p className="text-xs text-center text-slate-500 mt-2">
+             These keywords will be added to every image processed in this session.
+           </p>
         </div>
 
         {/* Action Bar */}
@@ -285,8 +303,8 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Results Grid */}
-        <div className="grid gap-6">
+        {/* Results Grid - Changed to 4 Columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {images.map((item) => (
             <MetadataCard 
               key={item.id} 
