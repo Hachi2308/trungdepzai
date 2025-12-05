@@ -1,0 +1,5 @@
+{
+  "name": "StockPhoto",
+  "description": "An intelligent tool for stock photographers to automatically generate SEO-optimized titles, descriptions, and keywords for Canva and Adobe Stock using Gemini 2.5.",
+  "requestFramePermissions": []
+}
