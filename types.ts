@@ -19,4 +19,5 @@ export interface AppSettings {
   artistName: string;
   model: string;
   maxConcurrency: number;
+  apiKey?: string;
 }
